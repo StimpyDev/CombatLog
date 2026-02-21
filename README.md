@@ -1,4 +1,4 @@
-# CombatLog
+# CombatLog Mod
 A simple (not so much anymore) mod to try to prevent players from leaving while in combat.
 
 ## Features
