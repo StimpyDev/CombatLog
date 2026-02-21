@@ -14,21 +14,30 @@ public class CombatCheck {
     public static int tickRate = 20;
 
     public static void CheckCombat(Entity victim, Entity attacker) {
-        if (!(victim instanceof LivingEntity target)) return;
+        if (!(victim instanceof LivingEntity)) return;
+        LivingEntity target = (LivingEntity) victim;
 
-        if (attacker instanceof Player playerAttacker) {
+        // 1. Logic for the ATTACKER
+        if (attacker instanceof Player) {
+            Player playerAttacker = (Player) attacker;
             if (((ServerPlayer) playerAttacker).gameMode.getGameModeForPlayer().isSurvival()) {
-                if (target instanceof Player playerTarget) {
+                
+                // If they hit another player
+                if (target instanceof Player) {
+                    Player playerTarget = (Player) target;
                     if (((ServerPlayer) playerTarget).gameMode.getGameModeForPlayer().isSurvival()) {
                         setCombat(playerTarget, playerAttacker);
                     }
-                } else if (CombatConfig.Config.mobDamage) {
+                } 
+                // If they hit a mob
+                else if (CombatConfig.Config.mobDamage) {
                     setCombat(playerAttacker);
                 }
             }
         }
 
-        if (target instanceof Player playerTarget && !(attacker instanceof Player)) {
+        if (target instanceof Player && !(attacker instanceof Player)) {
+            Player playerTarget = (Player) target;
             if (((ServerPlayer) playerTarget).gameMode.getGameModeForPlayer().isSurvival()) {
                 if (CombatConfig.Config.allDamage || (CombatConfig.Config.mobDamage && attacker instanceof LivingEntity)) {
                     setCombat(playerTarget);
@@ -67,7 +76,6 @@ public class CombatCheck {
     }
 
     public static void setCooldowns(List<ItemStack> list, Player... players) {
-        // Calculate duration once using the optimized tickRate
         int duration = CombatConfig.Config.combatTime * tickRate;
         
         for (Player player : players) {
