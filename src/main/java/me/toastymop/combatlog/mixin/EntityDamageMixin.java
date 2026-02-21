@@ -25,17 +25,19 @@ public abstract class EntityDamageMixin extends Entity {
     @Shadow
     public abstract boolean hurtServer(ServerLevel world, DamageSource source, float amount);
 
-    @Inject(method = "hurtServer", at = @At("TAIL"))
+    @Inject(method = "hurtServer", at = @At("HEAD"))
     protected void injectCheckMethod(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        CheckCombat(this);
+        // 'this' is the entity being hit (victim)
+        // 'source.getEntity()' is the entity doing the hitting (attacker)
+        CheckCombat(this, source.getEntity());
     }
     //?} else {
     /*@Shadow
     public abstract boolean hurt(DamageSource source, float amount);
 
-    @Inject(method = "hurt", at = @At("TAIL"))
+    @Inject(method = "hurt", at = @At("HEAD"))
     protected void injectCheckMethod(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
-        CheckCombat(this);
+        CheckCombat(this, source.getEntity());
     }
     *///?}
 }
