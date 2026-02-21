@@ -10,22 +10,36 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.List;
 
-public class CombatCheck {
-    public static Integer tickRate = 0;
-    public static void CheckCombat(Entity entity) {
-        LivingEntity target = (LivingEntity) entity;
-        if (target instanceof Player) {
-            LivingEntity attacker = target.getLastHurtByMob();
-            if ((attacker instanceof Player) && ((ServerPlayer) target).gameMode.getGameModeForPlayer().isSurvival() && ((ServerPlayer) attacker).gameMode.getGameModeForPlayer().isSurvival()) {
-                setCombat((Player) target,(Player) attacker);
-            }else if (CombatConfig.Config.allDamage && ((ServerPlayer) target).gameMode.getGameModeForPlayer().isSurvival()) {
-                setCombat((Player) target);
-            } else if (CombatConfig.Config.mobDamage && (attacker instanceof LivingEntity) && ((ServerPlayer) target).gameMode.getGameModeForPlayer().isSurvival()) {
-                setCombat((Player) target);
+public static void CheckCombat(Entity victim, Entity attacker) {
+    if (!(victim instanceof LivingEntity target)) return;
+
+    // Check if the ATTACKER is a player
+    if (attacker instanceof Player playerAttacker) {
+        if (((ServerPlayer) playerAttacker).gameMode.getGameModeForPlayer().isSurvival()) {
+            
+            // If they hit another player
+            if (target instanceof Player playerTarget) {
+                if (((ServerPlayer) playerTarget).gameMode.getGameModeForPlayer().isSurvival()) {
+                    setCombat(playerTarget, playerAttacker);
+                }
+            } 
+            // If they hit a mob
+            else if (CombatConfig.Config.mobDamage) {
+                setCombat(playerAttacker);
             }
         }
-
     }
+
+    if (target instanceof Player playerTarget) {
+        if (((ServerPlayer) playerTarget).gameMode.getGameModeForPlayer().isSurvival()) {
+            if (CombatConfig.Config.allDamage) {
+                setCombat(playerTarget);
+            } else if (CombatConfig.Config.mobDamage && attacker instanceof LivingEntity) {
+                setCombat(playerTarget);
+            }
+        }
+    }
+}
     public static void setCombat(Player target, Player attacker ) {
         //? if >=1.21.1 {
         tickRate = (int) target.level().getServer().tickRateManager().tickrate();
