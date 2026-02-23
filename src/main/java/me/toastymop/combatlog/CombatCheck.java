@@ -7,6 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
 
 import java.util.List;
 
@@ -15,55 +16,46 @@ public class CombatCheck {
 
     public static void CheckCombat(Entity victim, Entity attacker) {
         if (!(victim instanceof LivingEntity)) return;
-        LivingEntity target = (LivingEntity) victim;
 
-        // 1. Logic for the ATTACKER
-        if (attacker instanceof Player) {
-            Player playerAttacker = (Player) attacker;
-            if (((ServerPlayer) playerAttacker).gameMode.getGameModeForPlayer().isSurvival()) {
-                
-                // If they hit another player
-                if (target instanceof Player) {
-                    Player playerTarget = (Player) target;
-                    if (((ServerPlayer) playerTarget).gameMode.getGameModeForPlayer().isSurvival()) {
-                        setCombat(playerTarget, playerAttacker);
-                    }
-                } 
-                // If they hit a mob
-                else if (CombatConfig.Config.mobDamage) {
-                    setCombat(playerAttacker);
-                }
+        if (attacker instanceof Player pAttacker && victim instanceof Player pVictim) {
+            if (isSurvival(pAttacker) && isSurvival(pVictim)) {
+                setCombat(pVictim, pAttacker);
             }
+            return;
         }
 
-        if (target instanceof Player && !(attacker instanceof Player)) {
-            Player playerTarget = (Player) target;
-            if (((ServerPlayer) playerTarget).gameMode.getGameModeForPlayer().isSurvival()) {
+        if (victim instanceof Player pVictim && !(attacker instanceof Player)) {
+            if (isSurvival(pVictim)) {
                 if (CombatConfig.Config.allDamage || (CombatConfig.Config.mobDamage && attacker instanceof LivingEntity)) {
-                    setCombat(playerTarget);
+                    setCombat(pVictim);
                 }
             }
         }
     }
 
-    public static void setCombat(Player target, Player attacker) {
-        updateTickRate(target);
-        
-        TagData.setTagTime((IEntityDataSaver) target);
-        TagData.setTagTime((IEntityDataSaver) attacker);
-        
-        if (!CombatConfig.Config.disabledItems.isEmpty()){
-            setCooldowns(CombatConfig.Config.disabledItems, target, attacker);
-        }
+    private static boolean isSurvival(Player player) {
+        return player instanceof ServerPlayer sp && sp.gameMode.getGameModeForPlayer() == GameType.SURVIVAL;
     }
 
-    public static void setCombat(Player target) {
-        updateTickRate(target);
+    public static void setCombat(Player... players) {
+        if (players.length == 0) return;
         
-        TagData.setTagTime((IEntityDataSaver) target);
-        
-        if (!CombatConfig.Config.disabledItems.isEmpty()){
-            setCooldowns(CombatConfig.Config.disabledItems, target);
+        updateTickRate(players[0]);
+        int duration = CombatConfig.Config.combatTime * tickRate;
+        List<ItemStack> disabledItems = CombatConfig.Config.disabledItems;
+
+        for (Player player : players) {
+            TagData.setTagTime((IEntityDataSaver) player);
+            
+            if (!disabledItems.isEmpty()) {
+                for (ItemStack stack : disabledItems) {
+                    //? if >=1.21.6 {
+                    player.getCooldowns().addCooldown(stack, duration);
+                    //?} else {
+                    /* player.getCooldowns().addCooldown(stack.getItem(), duration); */
+                    //?}
+                }
+            }
         }
     }
 
@@ -73,19 +65,5 @@ public class CombatCheck {
         //?} else {
         /* tickRate = 20; */
         //?}
-    }
-
-    public static void setCooldowns(List<ItemStack> list, Player... players) {
-        int duration = CombatConfig.Config.combatTime * tickRate;
-        
-        for (Player player : players) {
-            for (ItemStack stack : list) {
-                //? if >=1.21.6 {
-                player.getCooldowns().addCooldown(stack, duration);
-                //?} else {
-                /* player.getCooldowns().addCooldown(stack.getItem(), duration); */
-                //?}
-            }
-        }
     }
 }
