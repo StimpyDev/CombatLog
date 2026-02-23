@@ -15,28 +15,36 @@ public class CombatCheck {
     public static int tickRate = 20;
 
     public static void CheckCombat(Entity victim, Entity attacker) {
-        if (!(victim instanceof LivingEntity)) return;
-        if (victim == attacker) return;
+    if (!(victim instanceof LivingEntity)) return;
+    if (victim == attacker) return;
 
-        if (attacker instanceof Player pAttacker && victim instanceof Player pVictim) {
-            if (isSurvival(pAttacker) && isSurvival(pVictim)) {
-                setCombat(pVictim, pAttacker);
-            }
-            return;
+    if (attacker instanceof Player && victim instanceof Player) {
+        Player pAttacker = (Player) attacker;
+        Player pVictim = (Player) victim;
+
+        if (isSurvival(pAttacker) && isSurvival(pVictim)) {
+            setCombat(pVictim, pAttacker);
         }
-
-        if (victim instanceof Player pVictim && !(attacker instanceof Player)) {
-            if (isSurvival(pVictim)) {
-                if (CombatConfig.Config.allDamage || (CombatConfig.Config.mobDamage && attacker instanceof LivingEntity)) {
-                    setCombat(pVictim);
-                }
+        return;
+    }
+        
+    if (victim instanceof Player && !(attacker instanceof Player)) {
+        Player pVictim = (Player) victim;
+        if (isSurvival(pVictim)) {
+            if (CombatConfig.Config.allDamage || (CombatConfig.Config.mobDamage && attacker instanceof LivingEntity)) {
+                setCombat(pVictim);
             }
         }
     }
+}
 
-    private static boolean isSurvival(Player player) {
-        return player instanceof ServerPlayer sp && sp.gameMode.getGameModeForPlayer() == GameType.SURVIVAL;
+private static boolean isSurvival(Player player) {
+    if (player instanceof ServerPlayer) {
+        ServerPlayer sp = (ServerPlayer) player;
+        return sp.gameMode.getGameModeForPlayer() == GameType.SURVIVAL;
     }
+    return false;
+}
 
     public static void setCombat(Player... players) {
         if (players.length == 0) return;
