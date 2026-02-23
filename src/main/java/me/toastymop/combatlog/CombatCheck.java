@@ -16,6 +16,7 @@ public class CombatCheck {
 
     public static void CheckCombat(Entity victim, Entity attacker) {
         if (!(victim instanceof LivingEntity)) return;
+        if (victim == attacker) return;
 
         if (attacker instanceof Player pAttacker && victim instanceof Player pVictim) {
             if (isSurvival(pAttacker) && isSurvival(pVictim)) {
