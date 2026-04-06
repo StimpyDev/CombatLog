@@ -14,6 +14,7 @@ public class CombatCheck {
     public static final int tickRate = 20;
 
     public static void CheckCombat(Entity victim, Entity attacker) {
+        // Alleen spelers, geen mobs
         if (!(victim instanceof Player) || !(attacker instanceof Player)) return;
         if (victim == attacker) return;
 
@@ -47,7 +48,12 @@ public class CombatCheck {
             if (disabledItems != null && !disabledItems.isEmpty()) {
                 for (ItemStack stack : disabledItems) {
                     if (stack != null && !stack.isEmpty()) {
+                        // Stonecutter/Preprocessor logica voor versie-specifieke cooldowns
+                        /*? if >1.20.6 { ?*/
+                        player.getCooldowns().addCooldown(stack, duration);
+                        /*? } else { ?*/
                         player.getCooldowns().addCooldown(stack.getItem(), duration);
+                        /*? } ?*/
                     }
                 }
             }
