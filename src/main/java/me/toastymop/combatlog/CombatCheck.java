@@ -12,50 +12,48 @@ import net.minecraft.world.level.GameType;
 import java.util.List;
 
 public class CombatCheck {
-    public static int tickRate = 20;
-    public static void CheckCombat(Entity victim, Entity attacker) {
-        if (!(victim instanceof LivingEntity)) return;
-        if (victim == attacker) return;
-        if (attacker instanceof Player && victim instanceof Player) {
-            Player pAttacker = (Player) attacker;
-            Player pVictim = (Player) victim;
+    public static final int TICK_RATE = 20;
 
-            if (isSurvival(pAttacker) && isSurvival(pVictim)) {
-                setCombat(pVictim, pAttacker);
-            }
+    public static void CheckCombat(Entity victim, Entity attacker) {
+        if (!(victim instanceof Player)) return; 
+        if (!(attacker instanceof Player)) return;
+        if (victim == attacker) return;
+
+        Player pVictim = (Player) victim;
+        Player pAttacker = (Player) attacker;
+
+        if (isSurvival(pVictim) && isSurvival(pAttacker)) {
+            setCombat(pVictim, pAttacker);
         }
     }
 
     private static boolean isSurvival(Player player) {
-        if (player instanceof ServerPlayer sp) {
+        if (player instanceof ServerPlayer) {
+            ServerPlayer sp = (ServerPlayer) player;
             return sp.gameMode.getGameModeForPlayer() == GameType.SURVIVAL;
         }
         return false;
     }
 
     public static void setCombat(Player... players) {
-        if (players.length == 0) return;
+        if (players == null || players.length == 0) return;
         
-        updateTickRate(players[0]);
-        int duration = CombatConfig.Config.combatTime * tickRate;
+        int duration = CombatConfig.Config.combatTime * TICK_RATE;
         List<ItemStack> disabledItems = CombatConfig.Config.disabledItems;
 
-        for (Player player : players) {
+        for (int i = 0; i < players.length; i++) {
+            Player player = players[i];
+            if (player == null) continue;
+
             TagData.setTagTime((IEntityDataSaver) player);
             
-            if (!disabledItems.isEmpty()) {
+            if (disabledItems != null && !disabledItems.isEmpty()) {
                 for (ItemStack stack : disabledItems) {
-                    player.getCooldowns().addCooldown(stack, duration);
+                    if (stack != null && !stack.isEmpty()) {
+                        player.getCooldowns().addCooldown(stack.getItem(), duration);
+                    }
                 }
             }
-        }
-    }
-
-    private static void updateTickRate(Player player) {
-        if (player.level().getServer() != null) {
-            tickRate = (int) player.level().getServer().tickRateManager().tickrate();
-        } else {
-            tickRate = 20;
         }
     }
 }
