@@ -47,7 +47,7 @@ public class CombatCheck {
             if (disabledItems != null && !disabledItems.isEmpty()) {
                 for (ItemStack stack : disabledItems) {
                     if (stack != null && !stack.isEmpty()) {
-                        player.getCooldowns().addCooldown(stack.getItem(), duration);
+                        player.getCooldowns().addCooldown(stack, duration);
                     }
                 }
             }
