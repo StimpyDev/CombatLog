@@ -11,16 +11,16 @@ import net.minecraft.world.level.GameType;
 import java.util.List;
 
 public class CombatCheck {
-    public static final int tickRate = 20;
+    public static int tickRate = 20;
 
     public static void CheckCombat(Entity victim, Entity attacker) {
-        // Alleen spelers, geen mobs
+        
         if (!(victim instanceof Player) || !(attacker instanceof Player)) return;
         if (victim == attacker) return;
 
         Player pVictim = (Player) victim;
         Player pAttacker = (Player) attacker;
-
+        
         if (isSurvival(pVictim) && isSurvival(pAttacker)) {
             setCombat(pVictim, pAttacker);
         }
@@ -35,28 +35,37 @@ public class CombatCheck {
     }
 
     public static void setCombat(Player... players) {
-        if (players == null || players.length == 0) return;
+        if (players.length == 0) return;
         
+        updateTickRate(players[0]);
         int duration = CombatConfig.Config.combatTime * tickRate;
         List<ItemStack> disabledItems = CombatConfig.Config.disabledItems;
 
         for (Player player : players) {
-            if (player == null) continue;
-
             TagData.setTagTime((IEntityDataSaver) player);
             
             if (disabledItems != null && !disabledItems.isEmpty()) {
                 for (ItemStack stack : disabledItems) {
-                    if (stack != null && !stack.isEmpty()) {
-                        // Stonecutter/Preprocessor logica voor versie-specifieke cooldowns
-                        /*? if >1.20.6 { ?*/
-                        player.getCooldowns().addCooldown(stack, duration);
-                        /*? } else { ?*/
-                        player.getCooldowns().addCooldown(stack.getItem(), duration);
-                        /*? } ?*/
-                    }
+                    if (stack == null || stack.isEmpty()) continue;
+
+                    // Stonecutter preprocessor voor verschillende MC versies
+                    //? if >=1.21.6 {
+                    player.getCooldowns().addCooldown(stack, duration);
+                    //?} else {
+                    /* player.getCooldowns().addCooldown(stack.getItem(), duration); */
+                    //?}
                 }
             }
         }
+    }
+
+    private static void updateTickRate(Player player) {
+        //? if >=1.21.1 {
+        if (player.level().getServer() != null) {
+            tickRate = (int) player.level().getServer().tickRateManager().tickrate();
+        }
+        //?} else {
+        /* tickRate = 20; */
+        //?}
     }
 }
