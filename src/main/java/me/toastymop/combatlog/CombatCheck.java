@@ -14,8 +14,7 @@ public class CombatCheck {
     public static final int tickRate = 20;
 
     public static void CheckCombat(Entity victim, Entity attacker) {
-        if (!(victim instanceof Player)) return; 
-        if (!(attacker instanceof Player)) return;
+        if (!(victim instanceof Player) || !(attacker instanceof Player)) return;
         if (victim == attacker) return;
 
         Player pVictim = (Player) victim;
@@ -40,8 +39,7 @@ public class CombatCheck {
         int duration = CombatConfig.Config.combatTime * tickRate;
         List<ItemStack> disabledItems = CombatConfig.Config.disabledItems;
 
-        for (int i = 0; i < players.length; i++) {
-            Player player = players[i];
+        for (Player player : players) {
             if (player == null) continue;
 
             TagData.setTagTime((IEntityDataSaver) player);
